@@ -1,0 +1,24 @@
+{
+   "template" : {
+      "name":"my template"
+   },
+   "requesterName" : {
+      "name":"EdFlux"
+   },
+   "fromAddress" : "EmailService",   
+   "toAddress" : [
+      "wim","greg"
+   ],   
+   "ccAddress" : [
+      "wim","greg"
+   ],   
+   "bccAddress" : [
+      "wim","greg"
+   ],   
+   "subject" : "Email test",
+   "values" : [{"key" : "user", "value" : "wim"},
+   {"key" : "pub_date", "value" : "2017-12-19"},
+   {"key" : "attachment1", "type" : "url" , "value" : "http:\\\\fhfhfhfhf"}
+   ],
+   "attachments" : [{"url" : "http:\\\\www.here.com\\image1.jpg"}]
+}

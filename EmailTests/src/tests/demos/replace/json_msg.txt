@@ -1,0 +1,27 @@
+{
+   "template" : {
+      "name":"my template"
+   },
+   "requesterName" : {
+      "name":"EdFlux"
+   },
+   "fromAddress" : "EmailService",   
+   "toAddress" : [
+      "wim.doornik@springer.com","greg.safford@springer.com"
+   ],   
+   "ccAddress" : [
+      "wim.doornik@outlook.com"],   
+   "bccAddress" : [
+      "wim.doornik@springer.com","greg.safford@springer.com"
+   ],   
+   "subject" : "Email test",
+   "values" : [{"key" : "title", "value" : "yur title here"},
+   {"key" : "user", "value" : "yur user here"},
+   {"key" : "resp", "type" : "text" , "value" : "yur resp ed here"},
+   {"key" : "isbns", "value" : "isbn1<br/>isbn2"},
+   {"key" : "license_type", "value" : "yur license type here"},
+   {"key" : "license_version", "value" : "yur license version here"},
+   {"key" : "peer_reviewed", "value" : "yur peer reviewed here"}
+   ],
+   "attachments" : [{"url" : "http:\\\\www.here.com\\image1.jpg"}]
+}
