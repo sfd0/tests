@@ -1,4 +1,4 @@
-package tests.email.html;
+package tests.edflux.email.html;
 
 /**
  * Header information for an HTML page.

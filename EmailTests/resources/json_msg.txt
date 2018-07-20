@@ -5,7 +5,7 @@
    "requesterName" : {
       "name":"EdFlux"
    },
-   "fromAddress" : "EmailService",   
+   "fromAddress" : "EmailService@springer.com",   
    "toAddress" : [
       "wim.doornik@springer.com","greg.safford@springer.com"
    ],   

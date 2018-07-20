@@ -1,4 +1,4 @@
-package tests.email.processor;
+package tests.edflux.email.processor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,9 +6,9 @@ import java.util.List;
 import org.apache.commons.mail.EmailException;
 
 import tests.demos.annotatedpojo.EmailData;
-import tests.email.EmailAddress;
-import tests.email.HTMLEmail;
-import tests.email.SMTPClient;
+import tests.edflux.email.EmailAddress;
+import tests.edflux.email.HTMLEmail;
+import tests.edflux.email.SMTPClient;
 
 public class EmailProcessor {
 

@@ -1,4 +1,4 @@
-package tests.email;
+package tests.edflux.email;
 
 /**
  * An email address with an optional clear text name.
@@ -9,7 +9,7 @@ public class EmailAddress {
 
     /**
      * Creates an instance with clear text name.
-     *
+     * 
      * @param email
      *            the actual email address.
      * @param name
@@ -22,7 +22,7 @@ public class EmailAddress {
 
     /**
      * Creates an instance without clear text name.
-     *
+     * 
      * @param email
      *            the email address.
      */

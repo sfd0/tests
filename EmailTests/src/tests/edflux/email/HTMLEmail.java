@@ -1,8 +1,9 @@
-package tests.email;
+package tests.edflux.email;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
@@ -17,6 +18,10 @@ import tests.edflux.email.html.HTMLStreamWriter;
  */
 public class HTMLEmail extends Email<HtmlEmail> {
 
+    private final StringWriter messageBuffer = new StringWriter();
+
+    private final HTMLStreamWriter html = new HTMLStreamWriter(this.messageBuffer);
+
     /**
      * Constructor.
      *
@@ -29,10 +34,7 @@ public class HTMLEmail extends Email<HtmlEmail> {
      * @param toMore
      *            additional recipients (optional).
      */
-    public HTMLEmail(
-                     final EmailAddress from,
-                     final String subject,
-                     final EmailAddress to,
+    public HTMLEmail(final EmailAddress from, final String subject, final EmailAddress to,
                      final EmailAddress... toMore) throws EmailException {
         super(new HtmlEmail(), from, subject, to, toMore);
     }
@@ -54,14 +56,15 @@ public class HTMLEmail extends Email<HtmlEmail> {
      *            additional recipients bcc (optional).
      */
 
-    public HTMLEmail(
-                     final EmailAddress from,
-                     final String subject,
-                     final EmailAddress to,
-                     final EmailAddress[] toMore,
-                     final EmailAddress[] cc,
+    public HTMLEmail(final EmailAddress from, final String subject, final EmailAddress to,
+                     final EmailAddress[] toMore, final EmailAddress[] cc,
                      final EmailAddress[] bcc) throws EmailException {
         super(new HtmlEmail(), from, subject, to, toMore, cc, bcc);
+    }
+
+    public HTMLEmail(final EmailAddress from, final String subject, final EmailAddress to,
+                     final EmailAddress[] toMore, final EmailAddress[] cc) throws EmailException {
+        super(new HtmlEmail(), from, subject, to, toMore, cc);
     }
 
     /**
@@ -81,12 +84,14 @@ public class HTMLEmail extends Email<HtmlEmail> {
         } catch (final IOException exc) {
             throw new EmailException(exc);
         }
+        wrappedEmail.setCharset(StandardCharsets.UTF_8.name());
         wrappedEmail.setHtmlMsg(this.messageBuffer.toString());
         return wrappedEmail;
     }
 
     /**
-     * attaches the file to HTML mail can be called multiple times to attach more than one items.
+     * attaches the file to HTML mail can be called multiple times to attach
+     * more than one items.
      *
      * @param fileAttachment
      *            file to be attached.
@@ -103,7 +108,4 @@ public class HTMLEmail extends Email<HtmlEmail> {
         getEmail().attach(attachment);
     }
 
-    private final StringWriter messageBuffer = new StringWriter();
-
-    private final HTMLStreamWriter html = new HTMLStreamWriter(this.messageBuffer);
 }

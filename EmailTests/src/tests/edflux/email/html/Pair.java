@@ -1,4 +1,4 @@
-package tests.email.html;
+package tests.edflux.email.html;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;

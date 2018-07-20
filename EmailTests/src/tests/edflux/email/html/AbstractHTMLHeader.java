@@ -1,4 +1,4 @@
-package tests.email.html;
+package tests.edflux.email.html;
 
 /**
  * An abstract implementation of the {@link HTMLHeader} interface that returns

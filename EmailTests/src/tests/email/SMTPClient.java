@@ -1,39 +1,33 @@
 package tests.email;
 
-import java.io.InputStream;
-import java.util.Properties;
-
 import org.apache.commons.mail.EmailException;
+import org.apache.log4j.Logger;
 
 /**
- * SMTP client class that initializes itself from configuration
+ * SMTP client class that initializes itself from configuration in the repository.
+ *
+ * @author heibel
  */
 public class SMTPClient {
 
-    private String smtpServer;
-
-    private int smtpPort;
+    /**
+     * The XPath to the SMPT server in {@link SprConfigurationObject sprconfigurationobject.xml}.
+     */
+    public static final String CFG_SMTP_SERVER = "/config/Smtp/Server";
 
     /**
-     * Creates an instance with server settings from
-     * {@link SprConfigurationObject sprconfigurationobject.xml}.
-     *
-     * @param session
-     *            session object to access the configuration.
+     * The XPath to the SMPT port in {@link SprConfigurationObject sprconfigurationobject.xml}.
      */
-    public SMTPClient() throws Exception {
-        final Properties prop = new Properties();
-        final InputStream input = getClass().getClassLoader().getResourceAsStream(
-                "email.properties");
-        prop.load(input);
+    public static final String CFG_SMTP_PORT = "/config/Smtp/Port";
 
-        if (input == null) {
-            System.out.println("Unable to find " + "email.properties");
-        } else {
-            setSmtpServer(prop.getProperty("smtpserver"));
-            setSmtpPort(prop.getProperty("smtpport"));
-            input.close();
-        }
+    /**
+     * Creates an instance with the given settings.
+     *
+     * @param cfg
+     *            provides the settings.
+     */
+    public SMTPClient(final SMTPConfiguration cfg) {
+        this.cfg = cfg;
     }
 
     /**
@@ -43,26 +37,18 @@ public class SMTPClient {
      *            the email to be sent.
      */
     public void send(final Email<?> email) throws EmailException {
+        final String routineName = "send";
         final org.apache.commons.mail.Email wrappedEmail = email.getEmailToBeSent();
-        wrappedEmail.setHostName(getSmtpServer());
-        wrappedEmail.setSmtpPort(getSmtpPort());
-        wrappedEmail.send();
+        wrappedEmail.setHostName(this.cfg.getServer());
+        wrappedEmail.setSmtpPort(this.cfg.getPort());
+        final String response = wrappedEmail.send();
+        LOGGER.trace(routineName + " - response: " + response);
     }
 
-    public String getSmtpServer() {
-        return smtpServer;
-    }
+    private final SMTPConfiguration cfg;
 
-    public void setSmtpServer(final String smtpServer) {
-        this.smtpServer = smtpServer;
-    }
-
-    public int getSmtpPort() {
-        return smtpPort;
-    }
-
-    public void setSmtpPort(final String smtpPort) {
-        this.smtpPort = Integer.parseInt(smtpPort);
-    }
-
+    /**
+    *
+    */
+    private static final Logger LOGGER = Logger.getLogger(SMTPClient.class);
 }

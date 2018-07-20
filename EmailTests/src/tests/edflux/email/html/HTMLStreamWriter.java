@@ -1,4 +1,4 @@
-package tests.email.html;
+package tests.edflux.email.html;
 
 import java.io.BufferedWriter;
 import java.io.Closeable;

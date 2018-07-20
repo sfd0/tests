@@ -1,4 +1,4 @@
-package tests.email.html;
+package tests.edflux.email.html;
 
 import java.util.ArrayList;
 import java.util.EmptyStackException;

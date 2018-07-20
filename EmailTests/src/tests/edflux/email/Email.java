@@ -1,4 +1,4 @@
-package tests.email;
+package tests.edflux.email;
 
 import org.apache.commons.mail.EmailException;
 
@@ -11,9 +11,11 @@ import org.apache.commons.mail.EmailException;
  */
 public abstract class Email<T extends org.apache.commons.mail.Email> {
 
+    private final T emailObject;
+
     /**
      * Wraps and initializes the given email object.
-     *
+     * 
      * @param email
      *            the email object.
      * @param from
@@ -25,26 +27,20 @@ public abstract class Email<T extends org.apache.commons.mail.Email> {
      * @param toMore
      *            additional recipients (optional).
      */
-    public Email(
-                 final T email,
-                 final EmailAddress from,
-                 final String subject,
-                 final EmailAddress to,
-                 final EmailAddress... toMore) throws EmailException {
+    public Email(final T email, final EmailAddress from, final String subject,
+                 final EmailAddress to, final EmailAddress... toMore) throws EmailException {
         this(email, from, subject, to, toMore, null, null);
     }
 
-    /**
-     * @param wrappedEmail
-     *            --
-     */
-    public Email(final T wrappedEmail) {
-        email = wrappedEmail;
+    public Email(final T email, final EmailAddress from, final String subject,
+                 final EmailAddress to, final EmailAddress[] toMore,
+                 final EmailAddress[] cc) throws EmailException {
+        this(email, from, subject, to, toMore, cc, null);
     }
 
     /**
      * Wraps and initializes the given email object.
-     *
+     * 
      * @param email
      *            the email object.
      * @param from
@@ -61,21 +57,16 @@ public abstract class Email<T extends org.apache.commons.mail.Email> {
      *            additional recipients bcc (optional).
      * @throws EmailException
      */
-    public Email(
-                 final T email,
-                 final EmailAddress from,
-                 final String subject,
-                 final EmailAddress to,
-                 final EmailAddress[] toMore,
-                 final EmailAddress[] cc,
+    public Email(final T email, final EmailAddress from, final String subject,
+                 final EmailAddress to, final EmailAddress[] toMore, final EmailAddress[] cc,
                  final EmailAddress[] bcc) throws EmailException {
-        this.email = email;
+        this.emailObject = email;
         if (from.getName() != null) {
-            this.email.setFrom(from.getEmail(), from.getName());
+            this.emailObject.setFrom(from.getEmail(), from.getName());
         } else {
-            this.email.setFrom(from.getEmail());
+            this.emailObject.setFrom(from.getEmail());
         }
-        this.email.setSubject(subject);
+        this.emailObject.setSubject(subject);
         addTo(to);
         if (toMore != null) {
             for (final EmailAddress nextTo : toMore) {
@@ -95,9 +86,9 @@ public abstract class Email<T extends org.apache.commons.mail.Email> {
     }
 
     /**
-     * Gets the wrapped email object ready to be sent. It has all required data except SMTP server
-     * information.
-     *
+     * Gets the wrapped email object ready to be sent. It has all required data
+     * except SMTP server information.
+     * 
      * @return Returns the email object ready to be sent.
      */
     public abstract org.apache.commons.mail.Email getEmailToBeSent() throws EmailException;
@@ -106,51 +97,49 @@ public abstract class Email<T extends org.apache.commons.mail.Email> {
      * @return Returns the wrapped email object.
      */
     protected final T getEmail() {
-        return this.email;
+        return this.emailObject;
     }
 
     /**
      * Adds a recipient to an email.
-     *
+     * 
      * @param to
      *            the recipient.
      */
     private void addTo(final EmailAddress to) throws EmailException {
         if (to.getName() != null) {
-            this.email.addTo(to.getEmail(), to.getName());
+            this.emailObject.addTo(to.getEmail(), to.getName());
         } else {
-            this.email.addTo(to.getEmail());
+            this.emailObject.addTo(to.getEmail());
         }
     }
 
     /**
      * Adds a recipient as cc an email.
-     *
+     * 
      * @param cc
      *            the recipient.
      */
     private void addCc(final EmailAddress cc) throws EmailException {
         if (cc.getName() != null) {
-            this.email.addCc(cc.getEmail(), cc.getName());
+            this.emailObject.addCc(cc.getEmail(), cc.getName());
         } else {
-            this.email.addCc(cc.getEmail());
+            this.emailObject.addCc(cc.getEmail());
         }
     }
 
     /**
      * Adds a recipient as cc an email.
-     *
+     * 
      * @param bcc
      *            the recipient.
      */
     private void addBcc(final EmailAddress bcc) throws EmailException {
         if (bcc.getName() != null) {
-            this.email.addBcc(bcc.getEmail(), bcc.getName());
+            this.emailObject.addBcc(bcc.getEmail(), bcc.getName());
         } else {
-            this.email.addBcc(bcc.getEmail());
+            this.emailObject.addBcc(bcc.getEmail());
         }
     }
-
-    private final T email;
 
 }
