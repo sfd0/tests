@@ -11,12 +11,14 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  *
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "project2author")
 @IdClass(Project2AuthorId.class)
@@ -57,5 +59,23 @@ public class Project2Author {
      * @JoinColumn(name = "author_id", updatable = false, insertable = false) or @JoinColumn(name =
      * "author_id", updatable = false, insertable = false, referencedColumnName = "author_id")
      */
+
+    /**
+     * {@inheritDoc}
+     *
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "Project2Author [projectId="
+                + projectId
+                + ", authorId="
+                + authorId
+                + ", sequenceNumber="
+                + sequenceNumber
+                + ", collaboratorTypeCode="
+                + collaboratorTypeCode
+                + "]";
+    }
 
 }
