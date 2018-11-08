@@ -9,7 +9,8 @@ import com.springernature.domain.AuthorEntity;
 import com.springernature.domain.Project2Author;
 import com.springernature.domain.ProjectEntity;
 import com.springernature.repository.AuthorRepository;
-import com.springernature.repository.Repository;
+import com.springernature.repository.Project2AuthorRepository;
+import com.springernature.repository.ProjectRepository;
 
 @RestController
 public class TestController {
@@ -18,10 +19,10 @@ public class TestController {
     AuthorRepository repository;
 
     @Autowired
-    Repository<ProjectEntity> projectRepository;
+    ProjectRepository projectRepository;
 
     @Autowired
-    Repository<Project2Author> joinRepository;
+    Project2AuthorRepository joinRepository;
 
     @RequestMapping(value = "/Test")
     public String displayName() {
