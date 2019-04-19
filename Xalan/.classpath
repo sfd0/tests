@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="serializer" path="src"/>
+	<classpathentry kind="var" path="JRE_LIB" sourcepath="JRE_SRC"/>
+	<classpathentry kind="con" path="D:/workspaces/fluxSmall/Xalan-j_2_7_2/build/classes"/>
+	<classpathentry kind="con" path="D:/workspaces/fluxSmall/Xalan-j_2_7_2/build/serializer"/>
+	<classpathentry kind="con" path="D:/workspaces/fluxSmall/Xalan-j_2_7_2/lib/endorsed/xml-apis.jar"/>
+	<classpathentry kind="con" path="D:/workspaces/fluxSmall/Xalan-j_2_7_2/build/serializer.jar"/>
+	<classpathentry kind="con" path="D:/workspaces/fluxSmall/Xalan-j_2_7_2/lib/endorsed/xercesImpl.jar"/>
+	<classpathentry kind="lib" path="C:/eclipse-jee-oxygen-2-win32-x86_64/plugins/org.eclipse.equinox.launcher_1.5.100.v20180827-1352.jar"/>
+	<classpathentry kind="lib" path="C:/eclipse-jee-oxygen-2-win32-x86_64/lombok.jar"/>
+	<classpathentry kind="lib" path="DOCUMENTUM_CONFIG"/>
+	<classpathentry kind="lib" path="lib/xalan22/serializer.jar"/>
+	<classpathentry kind="lib" path="lib/xalan22/xalan.jar"/>
+	<classpathentry kind="lib" path="lib/xalan22/xercesImpl.jar"/>
+	<classpathentry kind="lib" path="lib/xalan22/xml-apis.jar"/>
+	<classpathentry kind="lib" path="lib/java-cup-11b.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
