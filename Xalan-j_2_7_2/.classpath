@@ -26,6 +26,6 @@
 	<classpathentry kind="lib" path="tools/stylebook-1.0-b3_xalan-2.jar"/>
 	<classpathentry kind="lib" path="tools/xalan2jdoc.jar"/>
 	<classpathentry kind="lib" path="tools/xalan2jtaglet.jar"/>
-	<classpathentry kind="lib" path="lib/custom/xalan22/xercesImpl.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/BooksApplication Java Common"/>
 	<classpathentry kind="output" path="build/serializer"/>
 </classpath>
