@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 /*
- * $Id$
+ * $Id: ToStream.java 1225444 2011-12-29 05:52:39Z mrglavas $
  */
 package org.apache.xml.serializer;
 
@@ -153,6 +153,13 @@ abstract public class ToStream extends SerializerBase {
      * behavior.
      */
     private boolean m_expandDTDEntities = true;
+
+    /**
+     * Temporarily stores high UTF 16 surrogate in those cases where it could not be immediately
+     * joined with low surrogate coming after it (most likely due to chars got to different arrays
+     * being processed).
+     */
+    private Character m_highUTF16Surrogate;
 
     /**
      * Default constructor
@@ -1423,27 +1430,64 @@ abstract public class ToStream extends SerializerBase {
                         writeOutCleanChars(chars, i, lastDirtyCharProcessed);
                         writer.write("&#8232;");
                         lastDirtyCharProcessed = i;
-                    } else if (Encodings.isHighUTF16Surrogate(ch)) {
-                        // As of Java 1.5, we could use Character.isHighSurrogate(ch),
-                        // but this codebase needs to be Java 1.3 compliant (even though that is
-                        // seriously outdated),
-                        // which is why we settle for Encodings.isHighUTF16Surrogate(ch).
-                        lastDirtyCharProcessed = processDirty(chars, end, i, ch, lastDirtyCharProcessed, true);
-                        i = lastDirtyCharProcessed;
                     } else if (m_encodingInfo.isInEncoding(ch)) {
                         // If the character is in the encoding, and
                         // not in the normal ASCII range, we also
                         // just leave it get added on to the clean characters
 
+                    }
+                    // FIX for https://issues.apache.org/jira/browse/XALANJ-2419, taken from
+                    // attached patch and adjusted for the case when symbols are splitted between
+                    // two arrays being processed
+                    else if (Encodings.isHighUTF16Surrogate(ch)) {
+                        if (i == end - 1) {
+                            // Case when high surrogate is the last char in current array being
+                            // processed,
+                            // we should expect low surrogate as the first char in next array then
+                            m_highUTF16Surrogate = Character.valueOf(ch);
+                            writeOutCleanChars(chars, i, lastDirtyCharProcessed);
+                            lastDirtyCharProcessed = i;
+                        } else if (Encodings.isLowUTF16Surrogate(chars[i + 1])) {
+                            // So, this is a (valid) surrogate pair
+                            if (!m_encodingInfo.isInEncoding(ch, chars[i + 1])) {
+                                final int codepoint = Encodings.toCodePoint(ch, chars[i + 1]);
+                                writeOutCleanChars(chars, i, lastDirtyCharProcessed);
+                                writer.write("&#");
+                                writer.write(Integer.toString(codepoint));
+                                writer.write(';');
+                                lastDirtyCharProcessed = i + 1;
+                            } // Else process pair as clean chars
+                            i++; // We already took care of the low surrogate
+                        } else {
+                            // This is a fallback plan, we should never get here
+                            writeOutCleanChars(chars, i, lastDirtyCharProcessed);
+                            writeNumericCharReference(writer, ch);
+                            lastDirtyCharProcessed = i;
+                        }
+                    } else if (i == 0 && Encodings.isLowUTF16Surrogate(ch) && m_highUTF16Surrogate != null) {
+                        // Case of low surrogate coming as the first char in array
+                        if (!m_encodingInfo.isInEncoding(m_highUTF16Surrogate.charValue(), ch)) {
+                            final int codepoint = Encodings.toCodePoint(m_highUTF16Surrogate.charValue(), ch);
+                            writer.write("&#");
+                            writer.write(Integer.toString(codepoint));
+                            writer.write(';');
+                        } else { // Process pair as clean chars
+                            writer.write(new char[] { m_highUTF16Surrogate.charValue(), ch });
+                        }
+                        lastDirtyCharProcessed = 0; // as i == 0
+                        m_highUTF16Surrogate = null;
                     } else {
                         // This is a fallback plan, we should never get here
                         // but if the character wasn't previously handled
                         // (i.e. isn't in the encoding, etc.) then what
                         // should we do? We choose to write out an entity
+                        if (m_highUTF16Surrogate != null) {
+                            // Impossible case, but JIC
+                            writeNumericCharReference(writer, m_highUTF16Surrogate.charValue());
+                            m_highUTF16Surrogate = null;
+                        }
                         writeOutCleanChars(chars, i, lastDirtyCharProcessed);
-                        writer.write("&#");
-                        writer.write(Integer.toString(ch));
-                        writer.write(';');
+                        writeNumericCharReference(writer, ch);
                         lastDirtyCharProcessed = i;
                     }
                 }
@@ -1465,6 +1509,12 @@ abstract public class ToStream extends SerializerBase {
 
         // time to fire off characters generation event
         if (m_tracer != null) super.fireCharEvent(chars, start, length);
+    }
+
+    private static void writeNumericCharReference(final Writer writer, final char ch) throws IOException {
+        writer.write("&#");
+        writer.write(Integer.toString(ch));
+        writer.write(';');
     }
 
     private int processLineFeed(
@@ -1645,8 +1695,8 @@ abstract public class ToStream extends SerializerBase {
                     codePoint = Encodings.toCodePoint(ch, next);
                 }
 
-                writer.write("&#x");
-                writer.write(Integer.toHexString(codePoint).toUpperCase());
+                writer.write("&#");
+                writer.write(Integer.toString(codePoint));
                 writer.write(';');
                 pos += 2; // count the two characters that went into writing out this entity
             } else {
@@ -1875,13 +1925,15 @@ abstract public class ToStream extends SerializerBase {
         final char[] stringChars = m_attrBuff;
         int lastDirtyCharProcessed = -1;
 
-        for (int i = 0; i < len; i++) {
+        int i = 0;
+        for (; i < len; i++) {
             final char ch = stringChars[i];
 
             if (m_charInfo.shouldMapAttrChar(ch)) {
                 // The character is supposed to be replaced by a String
                 // e.g. '&' --> "&amp;"
                 // e.g. '<' --> "&lt;"
+                writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                 lastDirtyCharProcessed = accumDefaultEscape(writer, ch, i, stringChars, len, false, true);
             } else {
                 if (0x0 <= ch && ch <= 0x1F) {
@@ -1902,18 +1954,22 @@ abstract public class ToStream extends SerializerBase {
                     switch (ch) {
 
                         case CharInfo.S_HORIZONAL_TAB:
+                            writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                             writer.write("&#9;");
                             lastDirtyCharProcessed = i;
                             break;
                         case CharInfo.S_LINEFEED:
+                            writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                             writer.write("&#10;");
                             lastDirtyCharProcessed = i;
                             break;
                         case CharInfo.S_CARRIAGERETURN:
+                            writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                             writer.write("&#13;");
                             lastDirtyCharProcessed = i;
                             break;
                         default:
+                            writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                             writer.write("&#");
                             writer.write(Integer.toString(ch));
                             writer.write(';');
@@ -1924,40 +1980,94 @@ abstract public class ToStream extends SerializerBase {
                 } else if (ch < 0x7F) {
                     // Range 0x20 through 0x7E inclusive
                     // Normal ASCII chars
+                    writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                     writer.write(ch);
                     lastDirtyCharProcessed = i;
                 } else if (ch <= 0x9F) {
                     // Range 0x7F through 0x9F inclusive
                     // More control characters
+                    writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                     writer.write("&#");
                     writer.write(Integer.toString(ch));
                     writer.write(';');
                     lastDirtyCharProcessed = i;
                 } else if (ch == CharInfo.S_LINE_SEPARATOR) {
                     // LINE SEPARATOR
+                    writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                     writer.write("&#8232;");
                     lastDirtyCharProcessed = i;
-                } else if (Encodings.isHighUTF16Surrogate(ch)) {
-                    lastDirtyCharProcessed = processDirty(stringChars, len, i, ch, lastDirtyCharProcessed, false);
-                    i = lastDirtyCharProcessed;
                 } else if (m_encodingInfo.isInEncoding(ch)) {
                     // If the character is in the encoding, and
                     // not in the normal ASCII range, we also
                     // just write it out
+                    writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                     writer.write(ch);
                     lastDirtyCharProcessed = i;
+                }
+                // FIX for https://issues.apache.org/jira/browse/XALANJ-2419, taken from
+                // attached patch and adjusted for the case when symbols are splitted between
+                // two arrays being processed
+                else if (Encodings.isHighUTF16Surrogate(ch)) {
+                    if (i == len - 1) {
+                        // Case when high surrogate is the last char in current array being
+                        // processed,
+                        // we should expect low surrogate as the first char in next array then
+                        m_highUTF16Surrogate = Character.valueOf(ch);
+                        writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
+                        lastDirtyCharProcessed = i;
+                    } else if (Encodings.isLowUTF16Surrogate(stringChars[i + 1])) {
+                        // So, this is a (valid) surrogate pair
+                        if (!m_encodingInfo.isInEncoding(ch, stringChars[i + 1])) {
+                            final int codepoint = Encodings.toCodePoint(ch, stringChars[i + 1]);
+                            writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
+                            writer.write("&#");
+                            writer.write(Integer.toString(codepoint));
+                            writer.write(';');
+                            lastDirtyCharProcessed = i + 1;
+                        } // Else process pair as clean chars
+                        i++; // We already took care of the low surrogate
+                    } else {
+                        // This is a fallback plan, we should never get here
+                        writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
+                        writeNumericCharReference(writer, ch);
+                        lastDirtyCharProcessed = i;
+                    }
+                } else if (i == 0 && Encodings.isLowUTF16Surrogate(ch) && m_highUTF16Surrogate != null) {
+                    // Case of low surrogate coming as the first char in array
+                    if (!m_encodingInfo.isInEncoding(m_highUTF16Surrogate.charValue(), ch)) {
+                        final int codepoint = Encodings.toCodePoint(m_highUTF16Surrogate.charValue(), ch);
+                        writer.write("&#");
+                        writer.write(Integer.toString(codepoint));
+                        writer.write(';');
+                    } else { // Process pair as clean chars
+                        writer.write(new char[] { m_highUTF16Surrogate.charValue(), ch });
+                    }
+                    lastDirtyCharProcessed = 0; // as i == 0
+                    m_highUTF16Surrogate = null;
                 } else {
                     // This is a fallback plan, we should never get here
                     // but if the character wasn't previously handled
                     // (i.e. isn't in the encoding, etc.) then what
                     // should we do? We choose to write out a character ref
-                    writer.write("&#");
-                    writer.write(Integer.toString(ch));
-                    writer.write(';');
+                    if (m_highUTF16Surrogate != null) {
+                        // Impossible case, but JIC
+                        writeNumericCharReference(writer, m_highUTF16Surrogate.charValue());
+                        m_highUTF16Surrogate = null;
+                    }
+                    writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
+                    writeNumericCharReference(writer, ch);
                     lastDirtyCharProcessed = i;
                 }
 
             }
+        }
+
+        // we've reached the end. Any clean characters at the
+        // end of the array than need to be written out?
+        final int startClean = lastDirtyCharProcessed + 1;
+        if (i > startClean) {
+            final int lengthClean = i - startClean;
+            m_writer.write(stringChars, startClean, lengthClean);
         }
     }
 
