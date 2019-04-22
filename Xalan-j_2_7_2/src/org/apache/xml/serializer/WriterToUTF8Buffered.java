@@ -48,7 +48,7 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
    * can expand one unicode character by up to 3 bytes.
    */
   private static final int CHARS_MAX=(BYTES_MAX/3);
-  
+ 
  // private static final int 
   
   /** The byte stream to write to. (sc & sb remove final to compile in JDK 1.1.8) */
@@ -263,6 +263,22 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
         for(; i < n && (c = chars[i])< 0x80 ; i++ )
             buf_loc[count_loc++] = (byte)c;
     }
+    
+    
+    // TODO: test this
+    if (highAsLast != null && i == start) {
+        char low = chars[i]; // basically it should be chars[0] here
+
+        buf_loc[count_loc++] = (byte) (0xF0 | (((highAsLast + 0x40) >> 8) & 0xf0));
+        buf_loc[count_loc++] = (byte) (0x80 | (((highAsLast + 0x40) >> 2) & 0x3f));
+        buf_loc[count_loc++] = (byte) (0x80 | ((low >> 6) & 0x0f) + ((highAsLast << 4) & 0x30));
+        buf_loc[count_loc++] = (byte) (0x80 | (low & 0x3f));
+        
+        highAsLast = null;
+        System.out.println("********** Dealing with highAsLast *****");
+        i++;
+    }
+    
     for (; i < n; i++)
     {
 
@@ -287,12 +303,17 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
           char high, low;
           high = c;
           i++;
-          low = chars[i];
+          if(i<n){
+              low = chars[i];
 
-          buf_loc[count_loc++] = (byte) (0xF0 | (((high + 0x40) >> 8) & 0xf0));
-          buf_loc[count_loc++] = (byte) (0x80 | (((high + 0x40) >> 2) & 0x3f));
-          buf_loc[count_loc++] = (byte) (0x80 | ((low >> 6) & 0x0f) + ((high << 4) & 0x30));
-          buf_loc[count_loc++] = (byte) (0x80 | (low & 0x3f));
+              buf_loc[count_loc++] = (byte) (0xF0 | (((high + 0x40) >> 8) & 0xf0));
+              buf_loc[count_loc++] = (byte) (0x80 | (((high + 0x40) >> 2) & 0x3f));
+              buf_loc[count_loc++] = (byte) (0x80 | ((low >> 6) & 0x0f) + ((high << 4) & 0x30));
+              buf_loc[count_loc++] = (byte) (0x80 | (low & 0x3f));
+          } else {
+              System.out.println("********** Assign highAsLast  *****");
+              highAsLast = c;
+          }
       }
       else
       {
@@ -305,7 +326,7 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
     count = count_loc;
 
   }
-
+private Character highAsLast = null;
   /**
    * Write a string.
    *
