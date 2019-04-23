@@ -1664,7 +1664,8 @@ abstract public class ToStream extends SerializerBase {
         int pos = accumDefaultEntity(writer, ch, i, chars, len, fromTextNode, escLF);
 
         if (i == pos) {
-            if (Encodings.isHighUTF16Surrogate(ch)) {
+            boolean wasProcessedAsSurrogates = false;
+            if (fromTextNode && Encodings.isHighUTF16Surrogate(ch)) {
 
                 // Should be the UTF-16 low surrogate of the hig/low pair.
                 char next;
@@ -1699,7 +1700,9 @@ abstract public class ToStream extends SerializerBase {
                 writer.write(Integer.toString(codePoint));
                 writer.write(';');
                 pos += 2; // count the two characters that went into writing out this entity
-            } else {
+                wasProcessedAsSurrogates = true;
+            }
+            if (!wasProcessedAsSurrogates) {
                 /*
                  * This if check is added to support control characters in XML 1.1. If a character
                  * is a Control Character within C0 and C1 range, it is desirable to write it out as
@@ -1928,14 +1931,20 @@ abstract public class ToStream extends SerializerBase {
         int i = 0;
         for (; i < len; i++) {
             final char ch = stringChars[i];
-
+            int mappedCharsProcessed = 0;
             if (m_charInfo.shouldMapAttrChar(ch)) {
                 // The character is supposed to be replaced by a String
                 // e.g. '&' --> "&amp;"
                 // e.g. '<' --> "&lt;"
                 writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
-                lastDirtyCharProcessed = accumDefaultEscape(writer, ch, i, stringChars, len, false, true);
-            } else {
+                // returns i + number of chars processed. So, if no chars processed, last processed
+                // is i - 1.
+                final int rtn = accumDefaultEscape(writer, ch, i, stringChars, len, false, true);
+                mappedCharsProcessed = rtn - i;
+                lastDirtyCharProcessed = (i - 1) + mappedCharsProcessed;
+            }
+
+            if (0 == mappedCharsProcessed) {
                 if (0x0 <= ch && ch <= 0x1F) {
                     // Range 0x00 through 0x1F inclusive
                     // This covers the non-whitespace control characters
@@ -1951,32 +1960,26 @@ abstract public class ToStream extends SerializerBase {
                     // The default will handle this just fine, but this
                     // is a little performance boost to handle the more
                     // common TAB, NEW-LINE, CARRIAGE-RETURN
+                    writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                     switch (ch) {
 
                         case CharInfo.S_HORIZONAL_TAB:
-                            writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                             writer.write("&#9;");
-                            lastDirtyCharProcessed = i;
                             break;
                         case CharInfo.S_LINEFEED:
-                            writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                             writer.write("&#10;");
-                            lastDirtyCharProcessed = i;
                             break;
                         case CharInfo.S_CARRIAGERETURN:
-                            writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                             writer.write("&#13;");
-                            lastDirtyCharProcessed = i;
                             break;
                         default:
-                            writeOutCleanChars(stringChars, i, lastDirtyCharProcessed);
                             writer.write("&#");
                             writer.write(Integer.toString(ch));
                             writer.write(';');
-                            lastDirtyCharProcessed = i;
                             break;
 
                     }
+                    lastDirtyCharProcessed = i;
                 } else if (ch < 0x7F) {
                     // Range 0x20 through 0x7E inclusive
                     // Normal ASCII chars
