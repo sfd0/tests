@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	id="WebApp_ID" version="2.5">
+	<display-name>jersey sample</display-name>
+	<servlet>
+		<servlet-name>hello</servlet-name>
+		<servlet-class>org.gradle.demo.HelloServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>hello</servlet-name>
+		<url-pattern>/rest/hello</url-pattern>
+	</servlet-mapping>
+    <servlet>
+        <servlet-name>echo</servlet-name>
+        <servlet-class>com.spr.demo.EchoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>echo</servlet-name>
+        <url-pattern>/rest/echo</url-pattern>
+    </servlet-mapping>
+	<servlet>
+		<servlet-name>log4j-init</servlet-name>
+		<servlet-class>com.spr.demo.helpers.Log4jInit</servlet-class>
+		<init-param>
+			<param-name>log4j-init-file</param-name>
+            <param-value>WEB-INF/log4j/log4j.properties</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+</web-app>
