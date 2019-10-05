@@ -5,6 +5,9 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	id="WebApp_ID" version="2.5">
 	<display-name>jersey sample</display-name>
+    <listener>
+        <listener-class>org.apache.commons.fileupload.servlet.FileCleanerCleanup</listener-class>
+    </listener>
 	<servlet>
 		<servlet-name>hello</servlet-name>
 		<servlet-class>org.gradle.demo.HelloServlet</servlet-class>

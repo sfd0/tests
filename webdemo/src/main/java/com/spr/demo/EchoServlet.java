@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.spr.demo.helpers.ConsoleAppenderHelper;
 import com.spr.demo.helpers.HairballRuntimeException;
+import com.spr.demo.helpers.MultiPartHelper;
 
 @SuppressWarnings("serial")
 public class EchoServlet extends HttpServlet {
@@ -39,7 +40,15 @@ public class EchoServlet extends HttpServlet {
         final String routineName = "helper";
         try {
             ConsoleAppenderHelper.setConsoleAppender(LOGGER);
-            String echoText = request.getParameter("echo-input");
+            //
+            String echoText = null;
+            final String contentType = request.getContentType();
+            if (null != contentType && contentType.startsWith("multipart/form-data")) {
+                final MultiPartHelper mph = new MultiPartHelper(this.getServletContext(), request);
+                echoText = mph.getFormFieldValue("echo-input");
+            } else {
+                echoText = request.getParameter("echo-input");
+            }
             if (echoText == null) echoText = "default";
             LOGGER.info(callerName + " - echoing: " + echoText);
             response.setContentType("text/plain");

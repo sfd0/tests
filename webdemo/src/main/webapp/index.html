@@ -1,0 +1,26 @@
+<html>
+<head>
+<style>
+div {
+margin: 2px;
+}
+</style>
+</head>
+<body>
+	<form action="rest/form" method="post" enctype="multipart/form-data">
+		<div>
+			<label for="POST-name">Name:</label>
+			<input id="POST-name" type="text" name="name">
+		</div>
+        <div>
+            <label for="POST-email">Email:</label>
+            <input id="POST-email" type="text" name="email">
+        </div>
+		<div>
+			<label for="file1">File:</label>
+			<input id="file1" type="file" name="filename" />
+		</div>
+		<input type="submit" value="Save">
+	</form>
+</body>
+</html>

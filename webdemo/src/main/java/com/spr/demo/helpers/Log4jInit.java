@@ -30,7 +30,7 @@ public class Log4jInit extends HttpServlet {
         // System.err.println("file: " + file);
         // if the log4j-init-file is not set, then no point in trying
         if (file != null) {
-            System.setProperty("log_dir_path", prefix + "logs");
+            System.setProperty("log_dir_path", prefix + "../../logs");
             PropertyConfigurator.configure(prefix + file);
         }
         System.out.println("[out] Initialized log4j from " + prefix + file);
